@@ -1,0 +1,6 @@
+[submodule "instrument_connection"]
+	path = instrument_connection
+	url = https://github.com/DAWE-NKTP/instrument_connection
+[submodule "module_connection"]
+	path = module_connection
+	url = https://NKTP-RD@dev.azure.com/NKTP-RD/module_connection/_git/module_connection
