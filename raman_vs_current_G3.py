@@ -10,7 +10,6 @@ import matplotlib
 matplotlib.use('TkAgg')
 import matplotlib.pyplot as plt
 import time
-# %%
 
 # %%
 rm = visa.ResourceManager()
@@ -43,15 +42,18 @@ booster.register_write('22', 0)  # Set booster current to zero
 mainboard = mc.baseModule(comport, 15)
 mainboard.register_write('32', 2)  # Set interlock to 2 (interlock off)
 #%%
-serial = 'K0109585'
+serial = 'K0109470'
 base_path = os.path.join(os.getcwd(), 'data')
 
 # uncoil_0deg, uncoil_45deg, coil_0deg, coil_45deg
-extension = 'uncoil_0deg'
+extension = 'coil_45deg'
+# extension = 'uncoil_45deg'
+
 save_path = os.path.join(base_path, extension, serial)
 if not os.path.isdir(save_path):
     os.mkdir(save_path)
 #%%
+plt.close('all')
 mainboard.register_write('30', 1)  # Turn seed emission on
 plt.pause(2)
 osa.sweep()
@@ -63,7 +65,6 @@ ax.set_ylim([-90, 0])
 fig.show()
 
 mainboard.register_write('30', 2)  # Turn preamp emission on
-print('b')
 plt.pause(2)
 osa.sweep()
 osa.save(os.path.join(save_path, 'seed_preamp'))
@@ -88,6 +89,7 @@ fig, ax = plt.subplots()
 fig.show()
 ax.set_xlabel('Wavelength [nm]')
 ax.set_ylabel('Power [dBm]')
+ax.set_ylim([-80, -10])
 fig.canvas.mpl_connect('close_event', handle_close)
 
 continue_measuring = True
@@ -97,15 +99,15 @@ for indx, curr in enumerate(currents):
     if continue_measuring:
         ax.set_title('Now: ' + str(curr) + f' A [{indx/len(currents)*100:.1f}%]' )
         j = (indx)/len(currents)
-        print("[%-20s] %d%%" % ('='*int(20*j), 100*j) +  '\t[' + str(int(curr*1000)) + ' A]', end='\r')
+        print("[%-20s] %d%%" % ('='*int(20*j), 100*j) +  '\t[' + str(int(curr*1000)) + ' mA]', end='\r')
         fig.canvas.draw()
         booster.register_write('22', curr)  # Set booster current to curr
         plt.pause(1)
         read_curr = booster.register_read('1A')[0][0]  # Get the stage 2 current reading
         print(read_curr)
         osa.sweep()
-        wl, int = osa.get_trace('A')
-        ax.plot(wl, int, color=cmap[indx], label=str(curr)+'A')
+        wl, intensity = osa.get_trace('A')
+        ax.plot(wl, intensity, color=cmap[indx], label=str(curr)+'A')
         ax.legend(prop={'size': 14}, loc='upper right')
         fig.canvas.draw()
         osa.save(os.path.join(save_path, str(curr)+'A'))
